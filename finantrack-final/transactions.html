@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>FinanTrack 360 — Transacciones</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .filter-bar { display:flex; gap:12px; align-items:center; flex-wrap:wrap; }
+    .filter-bar select, .filter-bar input { width:auto; min-width:160px; padding:9px 14px; }
+    .filter-bar input[type="text"] { flex:1; min-width:200px; }
+  </style>
+</head>
+<body>
+
+<!-- Hamburger -->
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menú">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">💰</div>
+      <div><div class="logo-name">Finan<span>Track</span> 360</div><div class="logo-version">v1.0.0</div></div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a href="dashboard.html" class="nav-link ">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Dashboard
+    </a>
+    <a href="transactions.html" class="nav-link active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Transacciones
+    </a>
+    <div class="nav-section-label">Finanzas</div>
+    <a href="goals.html" class="nav-link ">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Metas
+    </a>
+    <a href="budgets.html" class="nav-link ">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Presupuesto
+    </a>
+    <div class="nav-section-label">Innovación</div>
+    <a href="chat.html" class="nav-link ">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Asesor IA
+    </a>
+    <a href="#" class="nav-link" onclick="openHistoryPanel();return false;" style="position:relative">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Alertas
+      <span id="sidebar-alert-badge" style="display:none;margin-left:auto;background:#e8705e;color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;font-family:Outfit,sans-serif;align-items:center;justify-content:center;min-width:20px;text-align:center">0</span>
+    </a>
+    <div class="nav-section-label">Cuenta</div>
+    <a href="settings.html" class="nav-link ">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configuración
+    </a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-card">
+      <div class="user-avatar" id="userInitial">A</div>
+      <div class="user-info">
+        <div class="user-name" id="sidebarName">—</div>
+        <div class="user-email" id="sidebarEmail">—</div>
+      </div>
+      <span class="user-logout" onclick="signOut()" title="Cerrar sesión">⏻</span>
+    </div>
+  </div>
+</aside>
+
+<div class="main-wrap">
+  <header class="topbar">
+    <div class="topbar-title">Transacciones</div>
+    <div class="topbar-right">
+      <button class="btn btn-primary btn-sm" onclick="openModal()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Nueva transacción
+      </button>
+    </div>
+  </header>
+  <main class="page-content page-enter">
+    <div class="card" style="margin-bottom:20px">
+      <div class="card-body">
+        <div class="filter-bar">
+          <input type="text" id="searchInput" placeholder="🔍  Buscar por descripción..." oninput="filterTx()"/>
+          <select id="filterType" onchange="filterTx()">
+            <option value="">Todos los tipos</option>
+            <option value="gasto">Solo gastos</option>
+            <option value="ingreso">Solo ingresos</option>
+          </select>
+          <select id="filterCat" onchange="filterTx()"><option value="">Todas las categorías</option></select>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="card-body" style="padding:0">
+        <div id="txTableWrap"><div class="empty-state"><div class="empty-icon">⏳</div><p>Cargando...</p></div></div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<!-- MODAL -->
+<div class="modal-overlay" id="txModal">
+  <div class="modal">
+    <div class="modal-header"><h3 class="modal-title">Nueva Transacción</h3><button class="modal-close" onclick="closeModal()">✕</button></div>
+    <div class="modal-body">
+      <div class="type-toggle" style="margin-bottom:20px">
+        <button class="type-btn gasto active" id="gastoBtn" onclick="setType('gasto')">↙ Gasto</button>
+        <button class="type-btn ingreso" id="ingresoBtn" onclick="setType('ingreso')">↗ Ingreso</button>
+      </div>
+      <div class="alert alert-error" id="modalError"></div>
+      <div class="form-row cols-2">
+        <div class="form-group"><label>Monto</label><input type="number" id="txAmount" placeholder="0.00" min="0.01" step="0.01"/></div>
+        <div class="form-group"><label>Fecha</label><input type="date" id="txDate"/></div>
+      </div>
+      <div class="form-row"><div class="form-group"><label>Descripción</label><input type="text" id="txDesc" placeholder="Ej: Supermercado, Salario..."/></div></div>
+      <div class="form-row"><div class="form-group"><label>Categoría</label><select id="txCategory"><option value="" disabled selected>Seleccionar categoría</option></select></div></div>
+      <div style="display:flex;gap:10px;justify-content:flex-end;margin-top:8px">
+        <button class="btn btn-secondary" onclick="closeModal()">Cancelar</button>
+        <button class="btn btn-primary" id="saveTxBtn" onclick="saveTransaction()">Guardar</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="alerts.js"></script>
+<script>
+  const fmt = n => '$'+Number(n).toLocaleString('es-MX',{minimumFractionDigits:2});
+  let allTxs = []; let currentType = 'gasto';
+
+  async function load() {
+    const session = await requireAuth(); if (!session) return;
+    const { data: profile } = await getProfile();
+    const name = profile?.full_name || session.user.email;
+    document.getElementById('sidebarName').textContent = name;
+    document.getElementById('sidebarEmail').textContent = session.user.email;
+    document.getElementById('userInitial').textContent = name.charAt(0).toUpperCase();
+    const { data: txs } = await getTransactions(200);
+    allTxs = txs || [];
+    // Populate category filter
+    const cats = [...new Set(allTxs.map(t => t.categories?.name).filter(Boolean))];
+    const sel = document.getElementById('filterCat');
+    cats.forEach(c => { const o = document.createElement('option'); o.value=c; o.textContent=c; sel.appendChild(o); });
+    filterTx();
+  }
+
+  function filterTx() {
+    const search = document.getElementById('searchInput').value.toLowerCase();
+    const type = document.getElementById('filterType').value;
+    const cat = document.getElementById('filterCat').value;
+    const filtered = allTxs.filter(tx => {
+      if (search && !tx.description.toLowerCase().includes(search)) return false;
+      if (type && tx.type !== type) return false;
+      if (cat && tx.categories?.name !== cat) return false;
+      return true;
+    });
+    renderTable(filtered);
+  }
+
+  function renderTable(txs) {
+    const wrap = document.getElementById('txTableWrap');
+    if (!txs.length) { wrap.innerHTML='<div class="empty-state"><div class="empty-icon">🔍</div><p>No se encontraron transacciones.</p></div>'; return; }
+    wrap.innerHTML = `<table class="data-table">
+      <thead><tr><th></th><th>Descripción</th><th class="hide-mobile">Categoría</th><th class="hide-mobile">Fecha</th><th>Tipo</th><th style="text-align:right">Monto</th><th></th></tr></thead>
+      <tbody>${txs.map(tx => {
+        const icon = tx.categories?.icon || (tx.type==='ingreso'?'💰':'💳');
+        const date = new Date(tx.date+'T00:00:00').toLocaleDateString('es-MX',{day:'numeric',month:'short',year:'numeric'});
+        return `<tr>
+          <td><div class="tx-icon-cell ${tx.type}">${icon}</div></td>
+          <td><strong>${tx.description}</strong></td>
+          <td class="hide-mobile" style="color:var(--muted)">${tx.categories?.name||'—'}</td>
+          <td class="hide-mobile" style="color:var(--muted)">${date}</td>
+          <td><span class="badge badge-${tx.type}">${tx.type==='ingreso'?'Ingreso':'Gasto'}</span></td>
+          <td style="text-align:right"><span class="amount-${tx.type}">${tx.type==='ingreso'?'+':''}${fmt(tx.amount)}</span></td>
+          <td><button class="btn btn-danger btn-sm" onclick="deleteTx('${tx.id}')">✕</button></td>
+        </tr>`;
+      }).join('')}</tbody></table>`;
+  }
+
+  async function deleteTx(id) {
+    if (!confirm('¿Eliminar esta transacción?')) return;
+    await deleteTransaction(id); load();
+  }
+
+  function openModal() { document.getElementById('txModal').classList.add('open'); document.getElementById('txDate').value=new Date().toISOString().split('T')[0]; loadCategories(); }
+  function closeModal() { document.getElementById('txModal').classList.remove('open'); }
+  function setType(t) { currentType=t; document.getElementById('gastoBtn').classList.toggle('active',t==='gasto'); document.getElementById('ingresoBtn').classList.toggle('active',t==='ingreso'); loadCategories(); }
+  async function loadCategories() {
+    const {data} = await getCategories(currentType);
+    const sel = document.getElementById('txCategory');
+    sel.innerHTML='<option value="" disabled selected>Seleccionar categoría</option>';
+    data?.forEach(c=>{const o=document.createElement('option');o.value=c.id;o.textContent=`${c.icon} ${c.name}`;sel.appendChild(o);});
+  }
+  async function saveTransaction() {
+    const amount=parseFloat(document.getElementById('txAmount').value);
+    const description=document.getElementById('txDesc').value.trim();
+    const category_id=document.getElementById('txCategory').value;
+    const date=document.getElementById('txDate').value;
+    const errEl=document.getElementById('modalError'); errEl.classList.remove('show');
+    if(!amount||amount<=0){errEl.textContent='Monto inválido.';errEl.classList.add('show');return;}
+    if(!description){errEl.textContent='Ingresa descripción.';errEl.classList.add('show');return;}
+    if(!category_id){errEl.textContent='Selecciona categoría.';errEl.classList.add('show');return;}
+    const btn=document.getElementById('saveTxBtn'); btn.disabled=true; btn.innerHTML='<span class="spinner"></span>Guardando...';
+    await checkTransactionAlert(category_id, amount);
+    const {error}=await addTransaction({type:currentType,amount,description,category_id,date});
+    btn.disabled=false; btn.innerHTML='Guardar';
+    if(error){errEl.textContent='Error: '+error.message;errEl.classList.add('show');return;}
+    closeModal(); load();
+  }
+  document.getElementById('txModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeModal();});
+  load();
+</script>
+</body>
+</html>
