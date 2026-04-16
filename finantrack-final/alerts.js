@@ -1,15 +1,24 @@
 // alerts.js — Sistema de Alertas FinanTrack 360
 
 function getAlertHistory() {
-  try { return JSON.parse(localStorage.getItem('ft_alert_history') || '[]'); } catch { return []; }
+  try {
+    const uid = localStorage.getItem('ft_uid') || 'guest';
+    return JSON.parse(localStorage.getItem(`ft_alert_history_${uid}`) || '[]');
+  } catch { return []; }
 }
+
 function saveAlertToHistory(a) {
+  const uid = localStorage.getItem('ft_uid') || 'guest';
   const h = getAlertHistory();
   h.unshift({ ...a, id: Date.now(), timestamp: new Date().toISOString(), read: false });
   if (h.length > 50) h.splice(50);
-  localStorage.setItem('ft_alert_history', JSON.stringify(h));
+  localStorage.setItem(`ft_alert_history_${uid}`, JSON.stringify(h));
 }
-function clearAlertHistory() { localStorage.removeItem('ft_alert_history'); }
+
+function clearAlertHistory() {
+  const uid = localStorage.getItem('ft_uid') || 'guest';
+  localStorage.removeItem(`ft_alert_history_${uid}`);
+}
 
 function createAlertsContainer() {
   if (document.getElementById('alerts-container')) return;

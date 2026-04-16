@@ -102,3 +102,12 @@ async function getBudgets(month, year) {
   return await _supabase.from('budgets').select('*, categories(name, icon, color)')
     .eq('user_id', session.user.id).eq('month', month).eq('year', year);
 }
+
+_supabase.auth.onAuthStateChange((event, session) => {
+  if (event === 'SIGNED_IN' && session) {
+    localStorage.setItem('ft_uid', session.user.id);
+  }
+  if (event === 'SIGNED_OUT') {
+    localStorage.removeItem('ft_uid');
+  }
+});
