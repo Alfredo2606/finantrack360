@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>FinanTrack 360 — Asesor IA</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;600;700&family=Outfit:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <link rel="stylesheet" href="styles.css"/>
+  <style>
+    .chat-layout{display:flex;flex-direction:column;height:calc(100vh - 64px)}
+    .chat-messages{flex:1;overflow-y:auto;padding:24px 36px;display:flex;flex-direction:column;gap:14px}
+    .chat-input-area{border-top:1px solid var(--border);background:var(--white);padding:16px 36px;display:flex;gap:12px;align-items:flex-end}
+    .chat-input{flex:1;padding:13px 18px;border:1.5px solid var(--border);border-radius:14px;font-family:'Outfit',sans-serif;font-size:14px;resize:none;outline:none;transition:border-color .2s;max-height:120px;line-height:1.5}
+    .chat-input:focus{border-color:var(--green);box-shadow:0 0 0 3px rgba(90,125,80,.1)}
+    .send-btn{width:46px;height:46px;border-radius:12px;border:none;background:var(--green);color:white;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:18px;transition:all .2s;flex-shrink:0;box-shadow:0 3px 12px rgba(90,125,80,.3)}
+    .send-btn:hover{background:var(--green-dark)}.send-btn:disabled{opacity:.5;cursor:not-allowed}
+    .msg{display:flex;gap:10px;max-width:82%;animation:msgIn .25s ease}
+    .msg.user{align-self:flex-end;flex-direction:row-reverse}.msg.bot{align-self:flex-start}
+    @keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+    .msg-av{width:34px;height:34px;border-radius:50%;flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700}
+    .msg.user .msg-av{background:var(--green);color:white}.msg.bot .msg-av{background:var(--sidebar-bg);color:white;font-size:16px}
+    .msg-bub{padding:12px 16px;border-radius:16px;font-size:14px;line-height:1.65;color:var(--text)}
+    .msg.user .msg-bub{background:var(--green);color:white;border-bottom-right-radius:4px}
+    .msg.bot .msg-bub{background:var(--white);border:1px solid var(--border);border-bottom-left-radius:4px;box-shadow:var(--shadow-sm)}
+    .msg-time{font-size:10px;color:var(--muted);margin-top:4px}.msg.user .msg-time{text-align:right}
+    .typing{display:flex;gap:4px;padding:12px 16px}
+    .typing span{width:7px;height:7px;border-radius:50%;background:var(--muted);animation:bounce .9s infinite}
+    .typing span:nth-child(2){animation-delay:.15s}.typing span:nth-child(3){animation-delay:.3s}
+    @keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-7px)}}
+    .quick-wrap{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+    .quick-btn{padding:7px 14px;border-radius:20px;border:1.5px solid var(--border);background:var(--white);color:var(--text-2);font-size:12px;font-weight:500;cursor:pointer;transition:all .15s;font-family:'Outfit',sans-serif}
+    .quick-btn:hover{border-color:var(--green);color:var(--green);background:var(--green-light)}
+    .stats-row{display:flex;gap:0;background:var(--sidebar-bg);border-radius:14px;overflow:hidden;margin:20px 36px 0;flex-shrink:0}
+    .stat-chip{flex:1;padding:14px 16px;text-align:center;border-right:1px solid rgba(255,255,255,.07)}
+    .stat-chip:last-child{border-right:none}
+    .stat-chip .val{font-family:'Playfair Display',serif;font-size:16px;font-weight:700;color:white}
+    .stat-chip .lbl{font-size:10px;color:rgba(255,255,255,.4);text-transform:uppercase;letter-spacing:.05em;margin-top:2px}
+    .welcome{text-align:center;padding:40px 20px;color:var(--muted);max-width:460px;margin:auto}
+    .welcome .ico{font-size:50px;margin-bottom:14px}
+    .welcome h3{font-family:'Playfair Display',serif;font-size:20px;color:var(--text);margin-bottom:8px}
+    .welcome p{font-size:13px;line-height:1.65}
+    .date-divider{text-align:center;font-size:11px;color:var(--muted);margin:8px 0;display:flex;align-items:center;gap:10px}
+    .date-divider::before,.date-divider::after{content:'';flex:1;height:1px;background:var(--border)}
+  </style>
+</head>
+<body>
+
+<button class="hamburger" id="hamburger" onclick="toggleSidebar()">
+  <span></span><span></span><span></span>
+</button>
+<div class="sidebar-overlay" id="sidebarOverlay" onclick="closeSidebar()"></div>
+
+<aside class="sidebar">
+  <div class="sidebar-logo">
+    <div class="logo-mark">
+      <div class="logo-icon">💰</div>
+      <div><div class="logo-name">Finan<span>Track</span> 360</div><div class="logo-version">v1.0.0</div></div>
+    </div>
+  </div>
+  <nav class="sidebar-nav">
+    <div class="nav-section-label">Principal</div>
+    <a href="dashboard.html" class="nav-link"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>Dashboard</a>
+    <a href="transactions.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M8 6h13M8 12h13M8 18h13M3 6h.01M3 12h.01M3 18h.01"/></svg>Transacciones</a>
+    <div class="nav-section-label">Finanzas</div>
+    <a href="goals.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="6"/><circle cx="12" cy="12" r="2"/></svg>Metas</a>
+    <a href="budgets.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>Presupuesto</a>
+    <div class="nav-section-label">Innovación</div>
+    <a href="chat.html" class="nav-link active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>Asesor IA</a>
+    <a href="#" class="nav-link" onclick="openHistoryPanel();return false;" style="position:relative">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+      Alertas
+      <span id="sidebar-alert-badge" style="display:none;margin-left:auto;background:#e8705e;color:white;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;font-family:Outfit,sans-serif;align-items:center;justify-content:center;min-width:20px;text-align:center">0</span>
+    </a>
+    <div class="nav-section-label">Cuenta</div>
+    <a href="settings.html" class="nav-link"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>Configuración</a>
+  </nav>
+  <div class="sidebar-user">
+    <div class="user-card">
+      <div class="user-avatar" id="userInitial">A</div>
+      <div class="user-info"><div class="user-name" id="sidebarName">—</div><div class="user-email" id="sidebarEmail">—</div></div>
+      <span class="user-logout" onclick="signOut()" title="Cerrar sesión">⏻</span>
+    </div>
+  </div>
+</aside>
+
+<div class="main-wrap">
+  <header class="topbar">
+    <div class="topbar-title">Asesor Financiero IA</div>
+    <div class="topbar-right">
+      <span id="msgCount" style="font-size:12px;color:var(--muted)"></span>
+      <button class="btn btn-secondary btn-sm" onclick="clearChat()">🗑 Limpiar</button>
+    </div>
+  </header>
+
+  <div class="chat-layout">
+    <div class="stats-row" id="statsRow" style="display:none">
+      <div class="stat-chip"><div class="val" id="cBal">$0</div><div class="lbl">Saldo</div></div>
+      <div class="stat-chip"><div class="val" id="cIng" style="color:#4ade80">$0</div><div class="lbl">Ingresos</div></div>
+      <div class="stat-chip"><div class="val" id="cGas" style="color:#f87171">$0</div><div class="lbl">Gastos</div></div>
+      <div class="stat-chip"><div class="val" id="cMet">0</div><div class="lbl">Metas</div></div>
+      <div class="stat-chip"><div class="val" id="cTx">0</div><div class="lbl">Movimientos</div></div>
+    </div>
+
+    <div class="chat-messages" id="chatMessages">
+      <div class="welcome" id="welcome">
+        <div class="ico">🤖</div>
+        <h3>Hola, soy FinanBot</h3>
+        <p>Tu asesor financiero personal. Solo respondo temas financieros 💰</p>
+      </div>
+    </div>
+
+    <div class="chat-input-area">
+      <div style="flex:1">
+        <div class="quick-wrap" id="quickWrap">
+          <button class="quick-btn" onclick="sq('¿Cómo van mis finanzas este mes?')">📊 Resumen</button>
+          <button class="quick-btn" onclick="sq('¿En qué categoría gasto más?')">💸 Mayor gasto</button>
+          <button class="quick-btn" onclick="sq('¿Cómo puedo ahorrar más dinero?')">💡 Ahorrar</button>
+          <button class="quick-btn" onclick="sq('¿Cómo van mis metas financieras?')">🎯 Mis metas</button>
+          <button class="quick-btn" onclick="sq('¿Estoy respetando mis presupuestos?')">📋 Presupuestos</button>
+        </div>
+        <textarea class="chat-input" id="chatInput"
+          placeholder="Pregúntame sobre tus finanzas..." rows="1"
+          onkeydown="handleKey(event)" oninput="autoResize(this)"></textarea>
+      </div>
+      <button class="send-btn" id="sendBtn" onclick="sendMessage()">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+        </svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase.js"></script>
+<script src="alerts.js"></script>
+<script>
+  const fmt = n => '$'+Number(n).toLocaleString('es-MX',{minimumFractionDigits:0});
+  // ⚠️ REEMPLAZA CON TU NUEVA KEY DE OPENROUTER (no la compartas aquí)
+  const OR_KEY = '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';
+  const OR_URL = 'https://openrouter.ai/api/v1/chat/completions';
+
+  // ── Historial persistente por usuario ─────────
+  let STORAGE_KEY = 'ft_chat_guest';
+  let userData = null;
+  let userName = '';
+
+  function loadHistory() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+  }
+  function saveHistory(h) {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(h.slice(-60))); } catch {}
+  }
+  function clearHistoryStorage() { localStorage.removeItem(STORAGE_KEY); }
+
+  let chatHistory = [];
+
+  // ── Init ───────────────────────────────────────
+  async function init() {
+    const session = await requireAuth(); if (!session) return;
+
+    // Clave de historial única por usuario
+    STORAGE_KEY = `ft_chat_${session.user.id}`;
+    chatHistory = loadHistory();
+
+    // Perfil
+    let { data: profile } = await getProfile();
+    if (!profile) {
+      await _supabase.from('profiles').insert([{
+        id: session.user.id,
+        full_name: session.user.user_metadata?.full_name || '',
+        email: session.user.email
+      }]).select();
+      const res = await getProfile();
+      profile = res.data;
+    }
+
+    userName = profile?.full_name || profile?.username || session.user.email.split('@')[0];
+    document.getElementById('sidebarName').textContent = userName;
+    document.getElementById('sidebarEmail').textContent = session.user.email;
+    document.getElementById('userInitial').textContent = userName.charAt(0).toUpperCase();
+
+    await loadData();
+    renderSavedMessages();
+  }
+
+  // ── Renderizar historial guardado ──────────────
+  function renderSavedMessages() {
+    if (!chatHistory.length) return;
+    document.getElementById('welcome')?.remove();
+    document.getElementById('quickWrap').style.display = 'none';
+    let lastDate = '';
+    chatHistory.forEach(msg => {
+      if (msg.role !== 'user' && msg.role !== 'assistant') return;
+      if (msg.date && msg.date !== lastDate) { addDateDivider(msg.date); lastDate = msg.date; }
+      addMsgToDOM(msg.role === 'user' ? 'user' : 'bot', msg.content, msg.time);
+    });
+    updateMsgCount();
+    setTimeout(() => { document.getElementById('chatMessages').scrollTop = 99999; }, 80);
+  }
+
+  function addDateDivider(dateStr) {
+    const c = document.getElementById('chatMessages');
+    const d = document.createElement('div');
+    d.className = 'date-divider';
+    d.textContent = dateStr;
+    c.appendChild(d);
+  }
+
+  function updateMsgCount() {
+    const count = chatHistory.filter(m => m.role === 'user').length;
+    const el = document.getElementById('msgCount');
+    if (el) el.textContent = count > 0 ? `${count} mensaje${count>1?'s':''}` : '';
+  }
+
+  // ── Cargar datos financieros ───────────────────
+  async function loadData() {
+    try {
+      const now = new Date();
+      const [bal, txR, goR, buR] = await Promise.all([
+        getBalance(), getTransactions(100), getGoals(),
+        getBudgets(now.getMonth()+1, now.getFullYear())
+      ]);
+      const txs=txR.data||[], goals=goR.data||[], budgets=buR.data||[];
+      const cats={};
+      txs.filter(t=>t.type==='gasto').forEach(t=>{
+        const c=t.categories?.name||'Sin categoría';
+        cats[c]=(cats[c]||0)+Number(t.amount);
+      });
+      userData = {
+        nombre:userName, saldo:bal.balance, ingresos:bal.ingresos, gastos:bal.gastos, totalTx:txs.length,
+        gastosPorCategoria:cats,
+        metas:goals.map(g=>({nombre:g.name,pct:Math.round((g.current_amount/g.target_amount)*100),actual:g.current_amount,objetivo:g.target_amount})),
+        presupuestos:budgets.map(b=>{
+          const spent=txs.filter(t=>t.category_id===b.category_id&&t.type==='gasto').reduce((s,t)=>s+Number(t.amount),0);
+          return {categoria:b.categories?.name,limite:b.budget_amount,gastado:spent,pct:Math.round((spent/b.budget_amount)*100)};
+        }),
+        ultimasTx:txs.slice(0,5).map(t=>({desc:t.description,monto:t.amount,tipo:t.type,cat:t.categories?.name,fecha:t.date}))
+      };
+      document.getElementById('cBal').textContent = fmt(bal.balance);
+      document.getElementById('cIng').textContent = fmt(bal.ingresos);
+      document.getElementById('cGas').textContent = fmt(bal.gastos);
+      document.getElementById('cMet').textContent = goals.length;
+      document.getElementById('cTx').textContent  = txs.length;
+      document.getElementById('statsRow').style.display = 'flex';
+    } catch(e){ console.error(e); }
+  }
+
+  // ── System prompt ──────────────────────────────
+  function buildSystem() {
+    if (!userData) return `Eres FinanBot, asesor financiero de FinanTrack 360. SOLO respondes temas financieros. Responde en español.`;
+    const d = userData;
+    return `Eres FinanBot, asesor financiero personal de FinanTrack 360.
+
+REGLAS ESTRICTAS:
+1. SOLO respondes sobre finanzas personales: gastos, ingresos, ahorro, presupuestos, metas, deudas, inversiones.
+2. Cualquier otro tema responde: "Lo siento, solo puedo ayudarte con temas financieros. ¿Tienes alguna duda sobre tus gastos, metas o presupuestos? 💰"
+3. Responde en español, amigable y conciso. Máximo 4-5 oraciones.
+
+DATOS DE ${d.nombre}:
+Saldo: ${fmt(d.saldo)} | Ingresos: ${fmt(d.ingresos)} | Gastos: ${fmt(d.gastos)} | Transacciones: ${d.totalTx}
+
+GASTOS POR CATEGORÍA:
+${Object.entries(d.gastosPorCategoria).map(([c,a])=>`- ${c}: ${fmt(a)}`).join('\n')||'Sin gastos'}
+
+METAS:
+${d.metas.length?d.metas.map(m=>`- ${m.nombre}: ${m.pct}% (${fmt(m.actual)} de ${fmt(m.objetivo)})`).join('\n'):'Sin metas'}
+
+PRESUPUESTOS:
+${d.presupuestos.length?d.presupuestos.map(p=>`- ${p.categoria}: ${p.pct}% (${fmt(p.gastado)} de ${fmt(p.limite)})`).join('\n'):'Sin presupuestos'}
+
+ÚLTIMAS TRANSACCIONES:
+${d.ultimasTx.map(t=>`- ${t.tipo==='gasto'?'↙':'↗'} ${t.desc} (${t.cat}): ${fmt(t.monto)} — ${t.fecha}`).join('\n')||'Sin transacciones'}`;
+  }
+
+  // ── Enviar mensaje ─────────────────────────────
+  async function sendMessage() {
+    const input = document.getElementById('chatInput');
+    const msg = input.value.trim(); if (!msg) return;
+    input.value = ''; input.style.height = 'auto';
+    document.getElementById('quickWrap').style.display = 'none';
+    document.getElementById('welcome')?.remove();
+
+    const now = new Date();
+    const time = now.toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+    const date = now.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long'});
+
+    const last = chatHistory[chatHistory.length-1];
+    if (!last || last.date !== date) addDateDivider(date);
+
+    addMsgToDOM('user', msg, time);
+    chatHistory.push({role:'user', content:msg, time, date});
+    saveHistory(chatHistory);
+    updateMsgCount();
+
+    document.getElementById('sendBtn').disabled = true;
+    const tid = addTyping();
+
+    try {
+      const res = await fetch(OR_URL, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${OR_KEY}`,
+          'HTTP-Referer': window.location.href,
+          'X-Title': 'FinanTrack 360'
+        },
+        body: JSON.stringify({
+          model: 'anthropic/claude-3-haiku',
+          messages: [
+            { role:'system', content: buildSystem() },
+            ...chatHistory.filter(m=>m.role==='user'||m.role==='assistant').slice(-12)
+          ]
+        })
+      });
+
+      const data = await res.json();
+      removeTyping(tid);
+
+      if (data.error) {
+        addMsgToDOM('bot', `❌ ${data.error.message || 'Error con la API. Verifica tu key de OpenRouter.'}`, time);
+      } else {
+        const reply = data.choices?.[0]?.message?.content || 'No pude procesar tu pregunta.';
+        const replyTime = new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+        chatHistory.push({role:'assistant', content:reply, time:replyTime, date});
+        saveHistory(chatHistory);
+        addMsgToDOM('bot', reply, replyTime);
+      }
+    } catch(e) {
+      removeTyping(tid);
+      addMsgToDOM('bot', '❌ Error de conexión. Verifica tu internet.', time);
+      console.error(e);
+    }
+
+    document.getElementById('sendBtn').disabled = false;
+    document.getElementById('chatInput').focus();
+  }
+
+  function sq(text) { document.getElementById('chatInput').value = text; sendMessage(); }
+
+  function addMsgToDOM(role, text, time) {
+    const c = document.getElementById('chatMessages');
+    if (!time) time = new Date().toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'});
+    const av = role==='user' ? (userName?.charAt(0).toUpperCase()||'U') : '🤖';
+    const d = document.createElement('div');
+    d.className = `msg ${role==='user'?'user':'bot'}`;
+    d.innerHTML = `<div class="msg-av">${av}</div><div><div class="msg-bub">${text.replace(/\n/g,'<br>')}</div><div class="msg-time">${time}</div></div>`;
+    c.appendChild(d); c.scrollTop = c.scrollHeight;
+  }
+
+  function addMsg(role, text) { addMsgToDOM(role, text); }
+
+  function addTyping() {
+    const id='typ-'+Date.now();
+    const c=document.getElementById('chatMessages');
+    const d=document.createElement('div');
+    d.className='msg bot'; d.id=id;
+    d.innerHTML='<div class="msg-av">🤖</div><div class="msg-bub"><div class="typing"><span></span><span></span><span></span></div></div>';
+    c.appendChild(d); c.scrollTop=c.scrollHeight; return id;
+  }
+  function removeTyping(id){ document.getElementById(id)?.remove(); }
+
+  function clearChat() {
+    if (!confirm('¿Borrar todo el historial?')) return;
+    chatHistory = [];
+    clearHistoryStorage();
+    document.getElementById('chatMessages').innerHTML = '<div class="welcome" id="welcome"><div class="ico">🤖</div><h3>Chat limpiado</h3><p>Empieza una nueva conversación.</p></div>';
+    document.getElementById('quickWrap').style.display = 'flex';
+    updateMsgCount();
+  }
+
+  function handleKey(e){ if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();} }
+  function autoResize(el){ el.style.height='auto'; el.style.height=Math.min(el.scrollHeight,120)+'px'; }
+
+  init();
+</script>
+
+<script>
+function toggleSidebar() {
+  const s=document.querySelector('.sidebar');
+  const h=document.getElementById('hamburger');
+  const o=document.getElementById('sidebarOverlay');
+  if(s.classList.contains('open')){closeSidebar();}
+  else{s.classList.add('open');h.classList.add('open');o.classList.add('show');document.body.style.overflow='hidden';}
+}
+function closeSidebar(){
+  document.querySelector('.sidebar').classList.remove('open');
+  document.getElementById('hamburger').classList.remove('open');
+  document.getElementById('sidebarOverlay').classList.remove('show');
+  document.body.style.overflow='';
+}
+document.querySelectorAll('.nav-link').forEach(l=>l.addEventListener('click',()=>{if(window.innerWidth<=768)closeSidebar();}));
+document.addEventListener('keydown',e=>{if(e.key==='Escape')closeSidebar();});
+</script>
+</body>
+</html>
