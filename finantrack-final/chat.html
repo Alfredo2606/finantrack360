@@ -305,7 +305,7 @@ ${d.ultimasTx.map(t=>`- ${t.tipo==='gasto'?'↙':'↗'} ${t.desc} (${t.cat}): ${
           'X-Title': 'FinanTrack 360'
         },
         body: JSON.stringify({
-          model: 'anthropic/claude-3-haiku',
+          model: 'meta-llama/llama-3.1-8b-instruct:free',
           messages: [
             { role:'system', content: buildSystem() },
             ...chatHistory.filter(m=>m.role==='user'||m.role==='assistant').slice(-12)
