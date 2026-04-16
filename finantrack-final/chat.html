@@ -153,14 +153,27 @@
   let userName = '';
 
   async function init() {
-    const session = await requireAuth(); if (!session) return;
-    const {data:profile} = await getProfile();
-    userName = profile?.full_name || session.user.email.split('@')[0];
-    document.getElementById('sidebarName').textContent = userName;
-    document.getElementById('sidebarEmail').textContent = session.user.email;
-    document.getElementById('userInitial').textContent = userName.charAt(0).toUpperCase();
-    await loadData();
+  const session = await requireAuth(); if (!session) return;
+
+  // Buscar perfil, si no existe crearlo automáticamente
+  let { data: profile } = await getProfile();
+  if (!profile) {
+    await _supabase.from('profiles').insert([{
+      id: session.user.id,
+      full_name: session.user.user_metadata?.full_name || '',
+      email: session.user.email
+    }]);
+    const res = await getProfile();
+    profile = res.data;
   }
+
+  userName = profile?.full_name || profile?.username || session.user.email.split('@')[0];
+  document.getElementById('sidebarName').textContent = userName;
+  document.getElementById('sidebarEmail').textContent = session.user.email;
+  document.getElementById('userInitial').textContent = userName.charAt(0).toUpperCase();
+  await loadData();
+  renderSavedMessages();
+}
 
   async function loadData() {
     try {
