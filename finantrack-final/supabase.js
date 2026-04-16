@@ -31,13 +31,25 @@ async function requireAuth() {
 // PROFILE
 async function getProfile() {
   const session = await getSession();
-  return await _supabase.from('profiles').select('*').eq('id', session.user.id).single();
-}
-async function updateProfile({ full_name }) {
-  const session = await getSession();
-  return await _supabase.from('profiles').update({ full_name }).eq('id', session.user.id).select();
-}
+  const { data, error } = await _supabase
+    .from('profiles')
+    .select('*')
+    .eq('id', session.user.id)
+    .maybeSingle();
 
+  // Si no existe el perfil, crearlo automáticamente
+  if (!data) {
+    const newProfile = {
+      id: session.user.id,
+      full_name: session.user.user_metadata?.full_name || '',
+      email: session.user.email
+    };
+    await _supabase.from('profiles').insert([newProfile]);
+    return { data: newProfile, error: null };
+  }
+
+  return { data, error };
+}
 // TRANSACTIONS
 async function getTransactions(limit = 50) {
   const session = await getSession();
